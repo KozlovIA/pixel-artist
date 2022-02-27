@@ -4,9 +4,13 @@ from PIL import Image
 from skimage import io
 import numpy as np
 import colors
+import time
+import math
+
+start_time = time.time()
 
 # чтение с файла
-img_file2 = io.imread('smile_ball.png')
+img_file2 = io.imread('memecat.jpg')
 
 
 imageSize = img_file2.shape     # получение размерности в виде: [x, y, z], где z=4 это кол-во сторон что ли, я не понял
@@ -55,25 +59,37 @@ def hex2rgb(hexcode):
 def hex2int(hexcode):
     return int(hexcode.replace('#', ''), 16)
 
+def cos_dist(rgb, approximation):
+    numerator = sum( [rgb[i]*approximation[i] for i in range(3)]   )
+    denominator = math.sqrt( sum([rgb[i]**2 for i in range(3)] )) * math.sqrt( sum([approximation[i]**2 for i in range(3)] ))
+    if denominator == 0:
+        denominator = 0.01
+    ratio = numerator/denominator
+    if ratio > 1:
+        ratio = 1
+    return math.acos(ratio)
+
 # Преобразование средних значений к ближайшему цвету из базы данных
-color_database = list(colors.hex_colors.values())
+color_database = list(colors.colors.values())
 number_of_colors = len(color_database)
-int_color_database = []
-for i in range(number_of_colors):
-    int_color_database.append(hex2int(color_database[i]))
 for i in range(imageSize[0]):
     for j in range(imageSize[1]):
-        current_pixel = rgb2hex(pixels_list_edit[i][j])  # текущий пиксель изображения в формате hex
-        current_pixel = hex2int(current_pixel)
+        current_pixel = pixels_list_edit[i][j]  # текущий пиксель изображения в формате RGB
         color_index = 0    # индекс цвета, который должен заменить пиксель
-        proximity = abs(int_color_database[0] - current_pixel)    # целочисленное приближение к цвету из библиотеки
         #расчет приближения
-        for k in range(1, number_of_colors):
-            if proximity > abs(int_color_database[k] - current_pixel):
-                proximity = abs(int_color_database[k] - current_pixel)
+        dist = 1
+        for k in range(number_of_colors):
+            test_dist = cos_dist(current_pixel, color_database[k])
+            if test_dist < dist:
+                dist = test_dist
                 color_index = k
-        pixels_list_edit[i][j] = hex2rgb(color_database[color_index])
-print(proximity)
+            elif test_dist == dist:
+                euclid_color_index = (current_pixel[0]-color_database[color_index][0])**2 + (current_pixel[1]-color_database[color_index][1])**2 + (current_pixel[2]-color_database[color_index][2])**2
+                euclid_k = (current_pixel[0]-color_database[k][0])**2 + (current_pixel[1]-color_database[k][1])**2 + (current_pixel[2]-color_database[k][2])**2
+                if euclid_color_index < euclid_k:
+                    color_index=k
+        pixels_list_edit[i][j] = color_database[color_index]
+        
 
 
 # преобразование из матрицы в список, для использования в функции putdata()
@@ -88,3 +104,6 @@ im.putdata(new_list)
 im_rotate = im.rotate(-90)
 im_flip = im_rotate.transpose(Image.FLIP_LEFT_RIGHT)
 im_flip.save('test.png')
+
+
+print("Программа завершена, с запуска прошло", round(time.time() - start_time, 2), "сек")
