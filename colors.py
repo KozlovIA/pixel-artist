@@ -3,19 +3,6 @@
 
 
 # dictionary of colors
-colors_old = {
-    "red": (255, 0, 0),
-    "green": (0, 255, 0),
-    "blue": (0, 0, 255),
-    "light-blue": (0, 191, 255),
-    "black": (0, 0, 0),
-    "white": (255, 255, 255),
-    "pink": (237, 60, 202),
-    "yellow": (255,	255, 0),
-    "green-yellow": (173, 255, 47),
-    "red-yellow-brown": (128, 70, 27),
-    "amethyst": (153, 102,204)
-    }
 
 # call only values - colors.values()
 
@@ -374,13 +361,9 @@ __hex_colors = {
 }
 
 
-hex_colors = {
-    "Черный": "#000000",
-    "Белый": "#FFFFFF",
-    "Красный": "#FF0000",
-    "Лайм": "#00FF00",
-    "Синий": "#0000FF",
-    "Желтый": "#FFFF00",
-    "Голубой": "#00FFFF",
-}
 
+color_database = []
+for r in range(0, 256, 63):
+    for g in range(0, 256, 63):
+        for b in range(0, 256, 63):
+            color_database.append((r, g, b))
